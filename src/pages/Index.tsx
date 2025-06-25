@@ -1,6 +1,6 @@
-
 import React, { useState } from 'react';
 import { toast } from 'sonner';
+import { Calendar, Users, CreditCard } from 'lucide-react';
 import Header from '@/components/Header';
 import AuthModal from '@/components/AuthModal';
 import SearchFilters from '@/components/SearchFilters';
