@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Users, CreditCard } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -35,6 +36,7 @@ const BookingModal = ({
 }: BookingModalProps) => {
   const [paymentMethod, setPaymentMethod] = useState('mpesa');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
 
   if (!room) return null;
 
@@ -52,8 +54,70 @@ const BookingModal = ({
   const serviceFee = Math.round(subtotal * 0.1);
   const total = subtotal + serviceFee;
 
-  const handlePayment = () => {
-    onConfirmBooking(paymentMethod);
+  const formatPhoneNumber = (value: string) => {
+    // Remove all non-digits
+    const digits = value.replace(/\D/g, '');
+    
+    // Format to Kenyan number format
+    if (digits.startsWith('254')) {
+      return digits;
+    } else if (digits.startsWith('0') && digits.length === 10) {
+      return '254' + digits.substring(1);
+    } else if (digits.startsWith('7') && digits.length === 9) {
+      return '254' + digits;
+    }
+    return digits;
+  };
+
+  const validatePhoneNumber = (phone: string) => {
+    const kenyanMobileRegex = /^254[17]\d{8}$/;
+    return kenyanMobileRegex.test(phone);
+  };
+
+  const handlePayment = async () => {
+    if (paymentMethod === 'mpesa') {
+      if (!phoneNumber) {
+        toast.error('Please enter your M-Pesa phone number');
+        return;
+      }
+      
+      const formattedPhone = formatPhoneNumber(phoneNumber);
+      if (!validatePhoneNumber(formattedPhone)) {
+        toast.error('Please enter a valid Kenyan mobile number (e.g., 254712345678)');
+        return;
+      }
+    }
+
+    setIsProcessing(true);
+    
+    if (paymentMethod === 'mpesa') {
+      // Simulate M-Pesa STK push
+      toast.loading('Sending payment request to your phone...', { id: 'payment-processing' });
+      
+      setTimeout(() => {
+        toast.success(`Payment request sent to ${phoneNumber}. Please check your phone and enter your M-Pesa PIN.`, {
+          id: 'payment-processing',
+          duration: 5000
+        });
+        
+        // Simulate payment completion
+        setTimeout(() => {
+          toast.success('🎉 Payment successful! Your booking is confirmed.', { 
+            duration: 5000,
+            style: { background: '#10B981', color: 'white' }
+          });
+          setIsProcessing(false);
+          onConfirmBooking(paymentMethod);
+        }, 4000);
+      }, 2000);
+    } else {
+      // Simulate card payment
+      setTimeout(() => {
+        toast.success('Payment successful! Your booking is confirmed.');
+        setIsProcessing(false);
+        onConfirmBooking(paymentMethod);
+      }, 2000);
+    }
   };
 
   return (
@@ -72,6 +136,10 @@ const BookingModal = ({
               src={room.image} 
               alt={room.name}
               className="w-20 h-20 object-cover rounded-lg"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = '/placeholder.svg';
+              }}
             />
             <div className="flex-1">
               <h3 className="font-semibold text-lg">{room.name}</h3>
@@ -178,24 +246,27 @@ const BookingModal = ({
                   type="tel"
                   value={phoneNumber}
                   onChange={(e) => setPhoneNumber(e.target.value)}
-                  placeholder="254XXXXXXXXX"
+                  placeholder="0712345678 or 254712345678"
                   className="mt-1"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  Enter your Safaricom number to receive payment prompt
+                </p>
               </div>
             )}
           </div>
 
           {/* Action Buttons */}
           <div className="flex space-x-3">
-            <Button variant="outline" onClick={onClose} className="flex-1">
+            <Button variant="outline" onClick={onClose} className="flex-1" disabled={isProcessing}>
               Cancel
             </Button>
             <Button 
               onClick={handlePayment} 
               className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-              disabled={paymentMethod === 'mpesa' && !phoneNumber}
+              disabled={isProcessing || (paymentMethod === 'mpesa' && !phoneNumber)}
             >
-              Pay KSH {total.toLocaleString()}
+              {isProcessing ? 'Processing...' : `Pay KSH ${total.toLocaleString()}`}
             </Button>
           </div>
         </div>

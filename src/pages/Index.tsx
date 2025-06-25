@@ -23,12 +23,12 @@ const Index = () => {
   const [showBookingModal, setShowBookingModal] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState<any>(null);
 
-  // Sample room data
+  // Sample room data with proper images
   const rooms = [
     {
       id: '1',
       name: 'Deluxe Ocean View Suite',
-      image: '/placeholder.svg',
+      image: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
       price: 15000,
       originalPrice: 18000,
       guests: 2,
@@ -39,7 +39,7 @@ const Index = () => {
     {
       id: '2',
       name: 'Standard City Room',
-      image: '/placeholder.svg',
+      image: 'https://images.unsplash.com/photo-1566665797739-1674de7a421a?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1974&q=80',
       price: 8500,
       guests: 2,
       amenities: ['City View', 'Queen Bed', 'WiFi', 'Air Conditioning'],
@@ -49,7 +49,7 @@ const Index = () => {
     {
       id: '3',
       name: 'Presidential Suite',
-      image: '/placeholder.svg',
+      image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
       price: 35000,
       originalPrice: 40000,
       guests: 4,
@@ -60,7 +60,7 @@ const Index = () => {
     {
       id: '4',
       name: 'Family Suite',
-      image: '/placeholder.svg',
+      image: 'https://images.unsplash.com/photo-1596394516093-501ba68a0ba6?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
       price: 22000,
       guests: 4,
       amenities: ['Two Bedrooms', 'Living Area', 'Kitchenette', 'WiFi', 'Kids Area'],
@@ -70,7 +70,7 @@ const Index = () => {
     {
       id: '5',
       name: 'Business Deluxe',
-      image: '/placeholder.svg',
+      image: 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1926&q=80',
       price: 12000,
       guests: 2,
       amenities: ['Desk Area', 'High-Speed WiFi', 'Meeting Room Access', 'Coffee Machine'],
@@ -80,7 +80,7 @@ const Index = () => {
     {
       id: '6',
       name: 'Honeymoon Suite',
-      image: '/placeholder.svg',
+      image: 'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80',
       price: 28000,
       guests: 2,
       amenities: ['Romantic Setup', 'Jacuzzi', 'Champagne', 'Rose Petals', 'Private Dining'],
@@ -135,9 +135,28 @@ const Index = () => {
   };
 
   const handleConfirmBooking = (paymentMethod: string) => {
-    toast.success(`Booking confirmed! Payment via ${paymentMethod} initiated.`);
-    setShowBookingModal(false);
-    setSelectedRoom(null);
+    if (paymentMethod === 'mpesa') {
+      // Simulate M-Pesa payment process
+      toast.loading('Initiating M-Pesa payment...', { id: 'mpesa-payment' });
+      
+      setTimeout(() => {
+        toast.success('M-Pesa payment request sent to your phone! Please complete the transaction.', { 
+          id: 'mpesa-payment',
+          duration: 5000 
+        });
+        
+        // Simulate payment completion after a few seconds
+        setTimeout(() => {
+          toast.success('Payment confirmed! Your booking is complete.', { duration: 5000 });
+          setShowBookingModal(false);
+          setSelectedRoom(null);
+        }, 3000);
+      }, 2000);
+    } else {
+      toast.success(`Booking confirmed! Payment via ${paymentMethod} initiated.`);
+      setShowBookingModal(false);
+      setSelectedRoom(null);
+    }
   };
 
   const filteredRooms = rooms.filter(room => {
