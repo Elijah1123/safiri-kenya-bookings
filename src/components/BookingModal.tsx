@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -55,17 +54,10 @@ const BookingModal = ({
   const total = subtotal + serviceFee;
 
   const formatPhoneNumber = (value: string) => {
-    // Remove all non-digits
     const digits = value.replace(/\D/g, '');
-    
-    // Format to Kenyan number format
-    if (digits.startsWith('254')) {
-      return digits;
-    } else if (digits.startsWith('0') && digits.length === 10) {
-      return '254' + digits.substring(1);
-    } else if (digits.startsWith('7') && digits.length === 9) {
-      return '254' + digits;
-    }
+    if (digits.startsWith('254')) return digits;
+    if (digits.startsWith('0') && digits.length === 10) return '254' + digits.substring(1);
+    if (digits.startsWith('7') && digits.length === 9) return '254' + digits;
     return digits;
   };
 
@@ -74,49 +66,53 @@ const BookingModal = ({
     return kenyanMobileRegex.test(phone);
   };
 
-  const handlePayment = async () => {
+  const handleBooking = async () => {
     if (paymentMethod === 'mpesa') {
       if (!phoneNumber) {
         toast.error('Please enter your M-Pesa phone number');
         return;
       }
-      
       const formattedPhone = formatPhoneNumber(phoneNumber);
       if (!validatePhoneNumber(formattedPhone)) {
-        toast.error('Please enter a valid Kenyan mobile number (e.g., 254712345678)');
+        toast.error('Invalid phone number format. Use 0712345678 or 254712345678');
         return;
       }
     }
 
     setIsProcessing(true);
-    
-    if (paymentMethod === 'mpesa') {
-      // Simulate M-Pesa STK push
-      toast.loading('Sending payment request to your phone...', { id: 'payment-processing' });
-      
-      setTimeout(() => {
-        toast.success(`Payment request sent to ${phoneNumber}. Please check your phone and enter your M-Pesa PIN.`, {
-          id: 'payment-processing',
-          duration: 5000
-        });
-        
-        // Simulate payment completion
-        setTimeout(() => {
-          toast.success('🎉 Payment successful! Your booking is confirmed.', { 
-            duration: 5000,
-            style: { background: '#10B981', color: 'white' }
-          });
-          setIsProcessing(false);
-          onConfirmBooking(paymentMethod);
-        }, 4000);
-      }, 2000);
-    } else {
-      // Simulate card payment
-      setTimeout(() => {
-        toast.success('Payment successful! Your booking is confirmed.');
+    try {
+      const response = await fetch('http://localhost:5000/api/bookings', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          room_id: room.id,
+          phone: formatPhoneNumber(phoneNumber),
+          amount: total,
+          check_in: checkIn,
+          check_out: checkOut,
+          guests: guests
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        toast.error(data.error || 'Booking failed. Please try again.');
         setIsProcessing(false);
-        onConfirmBooking(paymentMethod);
-      }, 2000);
+        return;
+      }
+
+      toast.success('🎉 Booking confirmed!');
+      onConfirmBooking(paymentMethod);
+      onClose();
+    } catch (error) {
+      console.error(error);
+      toast.error('An error occurred while booking.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -130,10 +126,10 @@ const BookingModal = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Room Details */}
+          {/* Room Info */}
           <div className="flex space-x-4">
-            <img 
-              src={room.image} 
+            <img
+              src={room.image}
               alt={room.name}
               className="w-20 h-20 object-cover rounded-lg"
               onError={(e) => {
@@ -150,7 +146,7 @@ const BookingModal = ({
             </div>
           </div>
 
-          {/* Booking Details */}
+          {/* Booking Summary */}
           <div className="bg-gray-50 p-4 rounded-lg space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
@@ -175,7 +171,7 @@ const BookingModal = ({
             </div>
           </div>
 
-          {/* Price Breakdown */}
+          {/* Price Details */}
           <div className="space-y-3">
             <h4 className="font-semibold">Price Breakdown</h4>
             <div className="space-y-2 text-sm">
@@ -195,12 +191,12 @@ const BookingModal = ({
             </div>
           </div>
 
-          {/* Payment Method */}
+          {/* Payment Section */}
           <div className="space-y-4">
             <h4 className="font-semibold">Payment Method</h4>
-            
+
             <div className="space-y-3">
-              <div 
+              <div
                 className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                   paymentMethod === 'mpesa' ? 'border-green-500 bg-green-50' : 'border-gray-200'
                 }`}
@@ -222,7 +218,7 @@ const BookingModal = ({
                 </div>
               </div>
 
-              <div 
+              <div
                 className={`p-4 border rounded-lg cursor-pointer transition-colors ${
                   paymentMethod === 'card' ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
                 }`}
@@ -256,15 +252,18 @@ const BookingModal = ({
             )}
           </div>
 
-          {/* Action Buttons */}
+          {/* Buttons */}
           <div className="flex space-x-3">
             <Button variant="outline" onClick={onClose} className="flex-1" disabled={isProcessing}>
               Cancel
             </Button>
-            <Button 
-              onClick={handlePayment} 
+            <Button
+              onClick={handleBooking}
               className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800"
-              disabled={isProcessing || (paymentMethod === 'mpesa' && !phoneNumber)}
+              disabled={
+                isProcessing ||
+                (paymentMethod === 'mpesa' && phoneNumber.trim() === '')
+              }
             >
               {isProcessing ? 'Processing...' : `Pay KSH ${total.toLocaleString()}`}
             </Button>

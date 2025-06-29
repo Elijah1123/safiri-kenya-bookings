@@ -1,10 +1,19 @@
-
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -16,20 +25,62 @@ const AuthModal = ({ isOpen, onClose, onAuthenticate }: AuthModalProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
 
-  const handleSignIn = (e: React.FormEvent) => {
+  const apiUrl = 'http://localhost:5000'; // Flask server base URL
+
+  const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && password) {
-      onAuthenticate(email);
-      onClose();
+    setError('');
+    try {
+      const response = await fetch(`${apiUrl}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        onAuthenticate(email);
+        onClose();
+      } else {
+        setError(data.error || 'Login failed');
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Server error. Please try again later.');
     }
   };
 
-  const handleSignUp = (e: React.FormEvent) => {
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && password && password === confirmPassword) {
-      onAuthenticate(email);
-      onClose();
+    setError('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${apiUrl}/signup`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        onAuthenticate(email);
+        onClose();
+      } else {
+        setError(data.error || 'Signup failed');
+      }
+    } catch (err) {
+      console.error('Signup error:', err);
+      setError('Server error. Please try again later.');
     }
   };
 
@@ -41,15 +92,17 @@ const AuthModal = ({ isOpen, onClose, onAuthenticate }: AuthModalProps) => {
             Welcome to LuxuryStay
           </DialogTitle>
         </DialogHeader>
-        
-        <Tabs defaultValue="signin" className="w-full">
+
+        {error && <p className="text-red-500 text-center">{error}</p>}
+
+        <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'signin' | 'signup')} className="w-full">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin">Sign In</TabsTrigger>
             <TabsTrigger value="signup">Sign Up</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="signin">
-            <form onSubmit={handleSignIn} className="space-y-4">
+            <form onSubmit={handleSignIn} className="space-y-4 mt-4">
               <div>
                 <Label htmlFor="signin-email">Email</Label>
                 <Input
@@ -77,9 +130,9 @@ const AuthModal = ({ isOpen, onClose, onAuthenticate }: AuthModalProps) => {
               </Button>
             </form>
           </TabsContent>
-          
+
           <TabsContent value="signup">
-            <form onSubmit={handleSignUp} className="space-y-4">
+            <form onSubmit={handleSignUp} className="space-y-4 mt-4">
               <div>
                 <Label htmlFor="signup-email">Email</Label>
                 <Input
