@@ -24,8 +24,8 @@ def create_app():
     from routes.admin_routes import admin_bp
 
     app.register_blueprint(auth_bp, url_prefix='/api/auth')
-    app.register_blueprint(booking_bp, url_prefix='/api/bookings')
-    app.register_blueprint(admin_bp, url_prefix='/api/admin')
+    app.register_blueprint(booking_bp, url_prefix='/api')
+    app.register_blueprint(admin_bp, url_prefix='/api')
 
     @login_manager.user_loader
     def load_user(user_id):

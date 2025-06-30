@@ -34,7 +34,7 @@ const AuthModal = ({ isOpen, onClose, onAuthenticate }: AuthModalProps) => {
     e.preventDefault();
     setError('');
     try {
-      const response = await fetch(`${apiUrl}/login`, {
+      const response = await fetch(`${apiUrl}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -64,7 +64,7 @@ const AuthModal = ({ isOpen, onClose, onAuthenticate }: AuthModalProps) => {
     }
 
     try {
-      const response = await fetch(`${apiUrl}/signup`, {
+      const response = await fetch(`${apiUrl}/api/auth/signup`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
