@@ -28,7 +28,7 @@ const AuthModal = ({ isOpen, onClose, onAuthenticate }: AuthModalProps) => {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>('signin');
 
-  const apiUrl = 'http://localhost:5000'; // Flask server base URL
+  const apiUrl = 'https://safiri-kenya-bookings-1.onrender.com'; // Flask server base URL
 
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
