@@ -7,7 +7,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SECRET_KEY = 'your-secret-key'
 
-    # MPESA CONFIG (Still needed for real transactions)
+    
     MPESA_CONSUMER_KEY = 'your_key'
     MPESA_CONSUMER_SECRET = 'your_secret'
     MPESA_SHORTCODE = '174379'

@@ -14,6 +14,7 @@ def get_rooms():
 @login_required
 def book_room():
     data = request.get_json()
+    print(data)
     guests = data.get('guests')
     room_id = data.get('room_id')
     phone = data.get('phone')
@@ -22,7 +23,7 @@ def book_room():
     check_in = '5/7/2025'
     
 
-    room = Room.query.get(room_id)
+    room = Room.query.get(int(room_id))
     if not room or not room.available:
         return jsonify({'error': 'Room is not available'}), 400
 
@@ -31,12 +32,12 @@ def book_room():
     db.session.add(booking)
     db.session.commit()
 
-    mpesa_response = lipa_na_mpesa(phone, amount)
+    # mpesa_response = lipa_na_mpesa(phone, amount)
 
     return jsonify({
         'message': 'Room booked successfully.',
         'booking_id': booking.id,
         'room_id': room.id,
-        'mpesa_response': mpesa_response
+        # 'mpesa_response': mpesa_response
     }), 200
 

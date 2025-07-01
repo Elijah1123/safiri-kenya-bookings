@@ -1,24 +1,23 @@
-from app import create_app  # Import the app factory
+from app import create_app  
 from models import db, User, Room, Booking
 from werkzeug.security import generate_password_hash
 
-# Initialize the Flask app using the factory
 app = create_app()
 
 def seed_data():
     with app.app_context():
-        # Drop and recreate all tables (be cautious in production!)
+
         db.drop_all()
         db.create_all()
 
-        # Create sample users
+       
         user1 = User(email="john@example.com", password=generate_password_hash("password123"))
         user2 = User(email="jane@example.com", password=generate_password_hash("securepass"))
 
         db.session.add_all([user1, user2])
         db.session.commit()
 
-        # Create sample rooms with all required fields
+      
         rooms = [
             Room(
                 name="Deluxe Ocean View Suite",

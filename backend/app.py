@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_file
 from flask_cors import CORS
 from flask_migrate import Migrate
 from flask_login import LoginManager
@@ -18,6 +18,15 @@ def create_app():
     
     login_manager = LoginManager()
     login_manager.init_app(app)
+
+    @app.route('/')
+    def home():
+        return send_file('static/index.html')
+    
+    @app.route('/<path:path>')
+    def assets(path):
+        return send_file(f'static/{path}')
+
 
     from routes.auth_routes import auth_bp
     from routes.bookings_routes import booking_bp
